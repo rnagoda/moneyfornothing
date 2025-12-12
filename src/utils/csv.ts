@@ -155,7 +155,10 @@ function parseCSVLine(line: string): string[] {
  */
 export function parseCSV(csvContent: string): AppData | null {
   try {
-    const lines = csvContent.split('\n').map(line => line.trim());
+    // Normalize line endings (handle CRLF, CR, LF)
+    const normalizedContent = csvContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n').map(line => line.trim());
+
     let currentSection = '';
     let headerSkipped = false;
 
@@ -165,50 +168,54 @@ export function parseCSV(csvContent: string): AppData | null {
     const savingsHistory: SavingsHistoryEntry[] = [];
     let lastSessionMonth = '';
 
-    // Extract month from header if present (format: "Money For Nothing Export - December 2024")
-    const headerMatch = lines[0]?.match(/Money For Nothing Export - (.+)/);
-    if (headerMatch) {
-      // Try to extract YYYY-MM from header - look for pattern in the lines
-    }
-
     for (const line of lines) {
       if (!line) {
-        headerSkipped = false;
         continue;
       }
 
-      // Check for section headers
-      if (line.startsWith('=== INCOME ===')) {
+      const lineLower = line.toLowerCase();
+
+      // Check for section headers (case-insensitive, flexible matching)
+      if (lineLower.includes('income') && (line.includes('===') || lineLower.startsWith('income'))) {
         currentSection = 'income';
         headerSkipped = false;
         continue;
-      } else if (line.startsWith('=== BILLS ===')) {
+      } else if (lineLower.includes('bills') && (line.includes('===') || lineLower.startsWith('bills'))) {
         currentSection = 'bills';
         headerSkipped = false;
         continue;
-      } else if (line.startsWith('=== SAVINGS HISTORY ===')) {
+      } else if (lineLower.includes('savings history') && line.includes('===')) {
         currentSection = 'savingsHistory';
         headerSkipped = false;
         continue;
-      } else if (line.startsWith('=== SAVINGS ===')) {
+      } else if (lineLower.includes('savings') && !lineLower.includes('history') && (line.includes('===') || lineLower.startsWith('savings'))) {
         currentSection = 'savings';
         headerSkipped = false;
         continue;
-      } else if (line.startsWith('=== SUMMARY ===')) {
+      } else if (lineLower.includes('summary') && line.includes('===')) {
         currentSection = 'summary';
         headerSkipped = false;
         continue;
-      } else if (line.startsWith('Money For Nothing Export')) {
+      } else if (lineLower.includes('money for nothing') || lineLower.includes('export')) {
         continue;
       }
 
-      // Skip header row in each section
+      // Skip header row in each section (flexible matching)
       if (!headerSkipped && currentSection) {
         if (
-          line.startsWith('Name,') ||
-          line.startsWith('Month,') ||
-          line.startsWith('Total ')
+          lineLower.startsWith('name') ||
+          lineLower.startsWith('month') ||
+          lineLower.startsWith('total ')
         ) {
+          headerSkipped = true;
+          continue;
+        }
+        // Also skip if it looks like a header (contains multiple column-like words)
+        if (currentSection === 'income' && lineLower.includes('default') && lineLower.includes('amount')) {
+          headerSkipped = true;
+          continue;
+        }
+        if (currentSection === 'bills' && lineLower.includes('paid')) {
           headerSkipped = true;
           continue;
         }
@@ -217,33 +224,44 @@ export function parseCSV(csvContent: string): AppData | null {
       // Parse data based on current section
       const values = parseCSVLine(line);
 
+      // Skip empty rows or rows that don't have enough data
+      if (values.length === 0 || (values.length === 1 && !values[0])) {
+        continue;
+      }
+
       switch (currentSection) {
         case 'income':
-          if (values.length >= 3) {
+          // Need at least name and one amount
+          if (values.length >= 2 && values[0]) {
             const paycheckNum = values[3] ? parseInt(values[3], 10) : undefined;
+            const defaultAmt = parseFloat(values[1]) || 0;
+            const currentAmt = values.length >= 3 ? (parseFloat(values[2]) || defaultAmt) : defaultAmt;
             income.push({
               id: uuidv4(),
               name: values[0],
-              defaultAmount: parseFloat(values[1]) || 0,
-              currentAmount: parseFloat(values[2]) || 0,
+              defaultAmount: defaultAmt,
+              currentAmount: currentAmt,
               paycheckNumber: paycheckNum === 1 || paycheckNum === 2 ? paycheckNum : undefined,
             });
           }
           break;
 
         case 'bills':
-          if (values.length >= 3) {
+          // Need at least name and amount
+          if (values.length >= 2 && values[0]) {
+            const paidValue = values[2]?.toLowerCase() || '';
             bills.push({
               id: uuidv4(),
               name: values[0],
               amount: parseFloat(values[1]) || 0,
-              paid: values[2].toLowerCase() === 'yes',
+              paid: paidValue === 'yes' || paidValue === 'true' || paidValue === '1' || paidValue === 'x',
             });
           }
           break;
 
         case 'savings':
-          if (values.length >= 2) {
+          // Need at least name and amount
+          if (values.length >= 2 && values[0]) {
             savings.push({
               id: uuidv4(),
               name: values[0],
@@ -275,11 +293,6 @@ export function parseCSV(csvContent: string): AppData | null {
       }
     }
 
-    // Validate we have at least some data
-    if (income.length === 0 && bills.length === 0 && savings.length === 0) {
-      return null;
-    }
-
     // If no lastSessionMonth found, use current month
     if (!lastSessionMonth) {
       const now = new Date();
@@ -290,6 +303,24 @@ export function parseCSV(csvContent: string): AppData | null {
     const num = Math.floor(Math.random() * 99999).toString().padStart(5, '0');
     const letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
     const versionString = `v0.${num}.${letter}`;
+
+    // Create default income entries if none found
+    if (income.length === 0) {
+      income.push({
+        id: uuidv4(),
+        name: 'Paycheck 1',
+        defaultAmount: 0,
+        currentAmount: 0,
+        paycheckNumber: 1,
+      });
+      income.push({
+        id: uuidv4(),
+        name: 'Paycheck 2',
+        defaultAmount: 0,
+        currentAmount: 0,
+        paycheckNumber: 2,
+      });
+    }
 
     return {
       income,
