@@ -14,9 +14,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer, modalStyles } from '../../theme';
 import { RetroText, RetroButton, RetroInput, RetroCard } from '../common';
 import { ProgressBar } from '../layout';
 import { useBills } from '../../hooks';
@@ -176,7 +175,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
       {/* Delete button */}
       <Pressable
         onPress={() => handleDeleteBill(item)}
-        style={styles.deleteButton}
+        style={modalStyles.deleteButton}
         accessibilityLabel={`Delete ${item.name}`}
       >
         <RetroText warning size="sm">
@@ -189,28 +188,28 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={webOuterContainer}>
-        <SafeAreaView style={[styles.container, webInnerContainer]}>
+        <SafeAreaView style={[modalStyles.container, webInnerContainer]}>
           <KeyboardAvoidingView
-            style={styles.keyboardView}
+            style={modalStyles.keyboardView}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-          <View style={styles.header}>
+          <View style={modalStyles.header}>
             <RetroText size="xl" bold>
               BILLS
             </RetroText>
-            <View style={styles.headerButtons}>
-              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+            <View style={modalStyles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={modalStyles.addHeaderButton}>
                 <RetroText>[ + ]</RetroText>
               </Pressable>
               <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
             </View>
           </View>
 
-          <ScrollView style={styles.content}>
+          <ScrollView style={modalStyles.content}>
             {/* Progress Card */}
             <RetroCard title="Progress">
               <ProgressBar progress={progress} />
-              <View style={styles.summaryRow}>
+              <View style={modalStyles.summaryRow}>
                 <RetroText muted size="sm">
                   Total Due:
                 </RetroText>
@@ -220,7 +219,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
 
             {/* Unpaid Bills Card */}
             <RetroCard>
-              <View style={styles.cardTitleRow}>
+              <View style={modalStyles.cardTitleRow}>
                 <RetroText bold size="lg">Unpaid</RetroText>
                 <RetroText bold size="lg" warning>{formatCurrency(unpaidTotal)}</RetroText>
               </View>
@@ -234,7 +233,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
 
               {/* Add new bill form */}
               {isAdding && (
-                <View style={styles.addForm}>
+                <View style={modalStyles.addFormInline}>
                   <RetroInput
                     label="Bill Name"
                     value={newBillName}
@@ -249,7 +248,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
                     placeholder="0.00"
                     keyboardType="numeric"
                   />
-                  <View style={styles.addFormButtons}>
+                  <View style={modalStyles.addFormButtons}>
                     <RetroButton
                       label="Cancel"
                       variant="secondary"
@@ -264,7 +263,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
 
             {/* Paid Bills Card */}
             <RetroCard>
-              <View style={styles.cardTitleRow}>
+              <View style={modalStyles.cardTitleRow}>
                 <RetroText bold size="lg">Paid</RetroText>
                 <RetroText bold size="lg" accent>{formatCurrency(totalPaid)}</RetroText>
               </View>
@@ -285,45 +284,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  addHeaderButton: {
-    padding: spacing.sm,
-  },
-  content: {
-    flex: 1,
-    padding: spacing.lg,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
-  cardTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
+  // Bill-specific styles (not in modalStyles)
   billItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -377,19 +338,5 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     padding: spacing.sm,
-  },
-  deleteButton: {
-    padding: spacing.sm,
-  },
-  addForm: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  addFormButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
   },
 });
