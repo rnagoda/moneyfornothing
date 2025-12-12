@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, webOuterContainer, webInnerContainer } from '../../theme';
 import { RetroText } from '../common';
 import { ProgressBar } from '../layout';
 import { WelcomeStep } from './WelcomeStep';
@@ -81,18 +81,20 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <RetroText size="lg" bold center>
-          SETUP WIZARD
-        </RetroText>
-        <ProgressBar progress={progress} showPercentage={false} />
-        <RetroText size="sm" muted center>
-          Step {stepIndex + 1} of {STEPS.length}
-        </RetroText>
-      </View>
-      <View style={styles.content}>{renderStep()}</View>
-    </SafeAreaView>
+    <View style={webOuterContainer}>
+      <SafeAreaView style={[styles.container, webInnerContainer]}>
+        <View style={styles.header}>
+          <RetroText size="lg" bold center>
+            SETUP WIZARD
+          </RetroText>
+          <ProgressBar progress={progress} showPercentage={false} />
+          <RetroText size="sm" muted center>
+            Step {stepIndex + 1} of {STEPS.length}
+          </RetroText>
+        </View>
+        <View style={styles.content}>{renderStep()}</View>
+      </SafeAreaView>
+    </View>
   );
 }
 

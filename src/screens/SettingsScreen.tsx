@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View, StyleSheet, SafeAreaView, Alert, Platform, StatusBar } from 'react-native';
-import { colors, spacing } from '../theme';
+import { colors, spacing, webOuterContainer, webInnerContainer } from '../theme';
 import { RetroText, RetroButton, RetroCard } from '../components/common';
 import { useAppContext } from '../context/AppContext';
 import { exportToCSV, selectAndParseCSV } from '../utils/csv';
@@ -119,25 +119,34 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
   };
 
   const handleRunSetupWizard = () => {
-    Alert.alert('Run Setup Wizard', 'This will restart the setup process. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Continue',
-        onPress: onRunSetupWizard,
-      },
-    ]);
+    // On web, use window.confirm since Alert callbacks don't work properly
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('This will restart the setup process. Continue?');
+      if (confirmed) {
+        onRunSetupWizard();
+      }
+    } else {
+      Alert.alert('Run Setup Wizard', 'This will restart the setup process. Continue?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          onPress: onRunSetupWizard,
+        },
+      ]);
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <RetroText size="xl" bold>
-          SETTINGS
-        </RetroText>
-        <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
-      </View>
+    <View style={webOuterContainer}>
+      <SafeAreaView style={[styles.container, webInnerContainer]}>
+        <View style={styles.header}>
+          <RetroText size="xl" bold>
+            SETTINGS
+          </RetroText>
+          <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
+        </View>
 
-      <View style={styles.content}>
+        <View style={styles.content}>
         {/* Data Section */}
         <RetroCard title="Data">
           <RetroButton
@@ -208,8 +217,9 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
             </RetroText>
           </RetroCard>
         )}
-      </View>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 

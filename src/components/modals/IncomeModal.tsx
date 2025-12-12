@@ -16,7 +16,7 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
 import { useIncome } from '../../hooks';
 import { formatCurrency, parseCurrency } from '../../utils/formatters';
@@ -56,14 +56,8 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
   const [newIncomeAmount, setNewIncomeAmount] = useState('');
 
   const startEditing = (item: Income, field: 'name' | 'currentAmount' | 'defaultAmount') => {
-    let value: string;
-    if (field === 'name') {
-      value = item.name;
-    } else if (field === 'currentAmount') {
-      value = item.currentAmount.toString();
-    } else {
-      value = item.defaultAmount.toString();
-    }
+    // For amounts, start with empty field for quicker entry
+    const value = field === 'name' ? item.name : '';
     setEditing({ id: item.id, field, value });
   };
 
@@ -140,12 +134,13 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.header}>
+      <View style={webOuterContainer}>
+        <SafeAreaView style={[styles.container, webInnerContainer]}>
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.header}>
             <RetroText size="xl" bold>
               INCOME
             </RetroText>
@@ -380,9 +375,10 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
                 onPress={handleResetToDefaults}
               />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 }
