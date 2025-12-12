@@ -28,49 +28,94 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
   };
 
   const handleImportCSV = async () => {
-    Alert.alert(
-      'Import Data',
-      'This will replace ALL your current data with the imported data. This cannot be undone. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Import',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await selectAndParseCSV();
+    // On web, we need to open file picker directly from user action (not from Alert callback)
+    // due to browser security restrictions. We'll show confirmation after file selection.
+    if (Platform.OS === 'web') {
+      try {
+        const result = await selectAndParseCSV();
 
-              // User cancelled
-              if (result.cancelled) {
-                return;
+        // User cancelled file picker
+        if (result.cancelled) {
+          return;
+        }
+
+        // Parsing failed
+        if (!result.success || !result.data) {
+          Alert.alert('Import Failed', result.error || 'Could not import the CSV file.');
+          return;
+        }
+
+        // Show confirmation after file is selected (on web)
+        const confirmImport = window.confirm(
+          'This will replace ALL your current data with the imported data. This cannot be undone. Continue?'
+        );
+
+        if (!confirmImport) {
+          return;
+        }
+
+        // Save to storage
+        const storage = await getStorage();
+        await storage.saveAllData(result.data);
+
+        // Update app state
+        dispatch({ type: 'IMPORT_DATA', payload: result.data });
+
+        Alert.alert(
+          'Import Successful',
+          `Imported ${result.data.income.length} income sources, ${result.data.bills.length} bills, and ${result.data.savings.length} savings items.`
+        );
+      } catch (error) {
+        console.error('Import error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        Alert.alert('Import Failed', `Could not import the CSV file: ${errorMessage}`);
+      }
+    } else {
+      // On mobile, show confirmation first (file picker works from callbacks)
+      Alert.alert(
+        'Import Data',
+        'This will replace ALL your current data with the imported data. This cannot be undone. Continue?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Import',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                const result = await selectAndParseCSV();
+
+                // User cancelled
+                if (result.cancelled) {
+                  return;
+                }
+
+                // Parsing failed
+                if (!result.success || !result.data) {
+                  Alert.alert('Import Failed', result.error || 'Could not import the CSV file.');
+                  return;
+                }
+
+                // Save to storage
+                const storage = await getStorage();
+                await storage.saveAllData(result.data);
+
+                // Update app state
+                dispatch({ type: 'IMPORT_DATA', payload: result.data });
+
+                Alert.alert(
+                  'Import Successful',
+                  `Imported ${result.data.income.length} income sources, ${result.data.bills.length} bills, and ${result.data.savings.length} savings items.`
+                );
+              } catch (error) {
+                console.error('Import error:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                Alert.alert('Import Failed', `Could not import the CSV file: ${errorMessage}`);
               }
-
-              // Parsing failed
-              if (!result.success || !result.data) {
-                Alert.alert('Import Failed', result.error || 'Could not import the CSV file.');
-                return;
-              }
-
-              // Save to storage
-              const storage = await getStorage();
-              await storage.saveAllData(result.data);
-
-              // Update app state
-              dispatch({ type: 'IMPORT_DATA', payload: result.data });
-
-              Alert.alert(
-                'Import Successful',
-                `Imported ${result.data.income.length} income sources, ${result.data.bills.length} bills, and ${result.data.savings.length} savings items.`
-              );
-            } catch (error) {
-              console.error('Import error:', error);
-              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-              Alert.alert('Import Failed', `Could not import the CSV file: ${errorMessage}`);
-            }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const handleRunSetupWizard = () => {

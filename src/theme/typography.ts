@@ -1,24 +1,23 @@
 /**
  * Typography Configuration for Money For Nothing
- * Uses Courier Prime for retro monospace aesthetic
+ * Uses Roboto Mono for clean sans-serif monospace aesthetic
+ *
+ * TO REVERT TO COURIER PRIME (serif monospace):
+ * 1. Change font names below from 'RobotoMono-*' to 'CourierPrime-*'
+ * 2. Update App.tsx to load CourierPrime fonts instead of RobotoMono
  */
 
-import { Platform } from 'react-native';
-
 // Font family names
+// expo-font loads fonts by key name, so we use the same names across platforms
 export const fonts = {
-  regular: Platform.select({
-    web: '"Courier Prime", "Courier New", Courier, monospace',
-    default: 'CourierPrime-Regular',
-  }),
-  bold: Platform.select({
-    web: '"Courier Prime", "Courier New", Courier, monospace',
-    default: 'CourierPrime-Bold',
-  }),
-  italic: Platform.select({
-    web: '"Courier Prime", "Courier New", Courier, monospace',
-    default: 'CourierPrime-Italic',
-  }),
+  // Roboto Mono - sans-serif (current)
+  regular: 'RobotoMono-Regular',
+  bold: 'RobotoMono-Bold',
+  italic: 'RobotoMono-Italic',
+  // Courier Prime - serif (backup)
+  // regular: 'CourierPrime-Regular',
+  // bold: 'CourierPrime-Bold',
+  // italic: 'CourierPrime-Italic',
 } as const;
 
 // Font sizes

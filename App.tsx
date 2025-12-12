@@ -77,12 +77,20 @@ export default function App() {
   useEffect(() => {
     async function initialize() {
       try {
-        // Try to load custom fonts (optional - will fall back to system monospace)
+        // Load custom fonts
+        // Currently using Roboto Mono (sans-serif monospace)
+        // To revert to Courier Prime (serif monospace), change the font files below
+        // and update src/theme/typography.ts to use 'CourierPrime-*' names
         try {
           await Font.loadAsync({
-            'CourierPrime-Regular': require('./assets/fonts/CourierPrime-Regular.ttf'),
-            'CourierPrime-Bold': require('./assets/fonts/CourierPrime-Bold.ttf'),
-            'CourierPrime-Italic': require('./assets/fonts/CourierPrime-Italic.ttf'),
+            // Roboto Mono - sans-serif monospace (current)
+            'RobotoMono-Regular': require('./assets/fonts/RobotoMono-Regular.ttf'),
+            'RobotoMono-Bold': require('./assets/fonts/RobotoMono-Bold.ttf'),
+            'RobotoMono-Italic': require('./assets/fonts/RobotoMono-Italic.ttf'),
+            // Courier Prime - serif monospace (backup, uncomment to use)
+            // 'CourierPrime-Regular': require('./assets/fonts/CourierPrime-Regular.ttf'),
+            // 'CourierPrime-Bold': require('./assets/fonts/CourierPrime-Bold.ttf'),
+            // 'CourierPrime-Italic': require('./assets/fonts/CourierPrime-Italic.ttf'),
           });
         } catch (fontError) {
           // Fonts not found - will use system fallback
