@@ -89,9 +89,6 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
               <RetroText size="sm">{formatCurrency(inc.currentAmount)}</RetroText>
             </View>
           ))}
-          <RetroText muted size="xs" style={styles.tapHint}>
-            Tap to edit
-          </RetroText>
         </RetroCard>
 
         {/* Bills Section */}
@@ -117,9 +114,6 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
               {bills.filter(b => b.paid).length}/{bills.length} bills
             </RetroText>
           </View>
-          <RetroText muted size="xs" style={styles.tapHint}>
-            Tap to edit
-          </RetroText>
         </RetroCard>
 
         {/* Savings Section */}
@@ -143,9 +137,6 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
               No savings accounts yet
             </RetroText>
           )}
-          <RetroText muted size="xs" style={styles.tapHint}>
-            Tap to edit
-          </RetroText>
         </RetroCard>
 
         {/* Version */}
@@ -201,11 +192,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.xs,
-  },
-  tapHint: {
-    marginTop: spacing.sm,
-    textAlign: 'right',
-    fontStyle: 'italic',
   },
   versionContainer: {
     alignItems: 'center',

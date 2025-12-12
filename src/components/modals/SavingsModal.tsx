@@ -149,7 +149,12 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
             <RetroText size="xl" bold>
               SAVINGS
             </RetroText>
-            <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
+            <View style={styles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+                <RetroText>[ + ]</RetroText>
+              </Pressable>
+              <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
+            </View>
           </View>
 
           <View style={styles.summary}>
@@ -267,7 +272,7 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
             )}
 
             {/* Add new savings form */}
-            {isAdding ? (
+            {isAdding && (
               <View style={styles.addForm}>
                 <RetroInput
                   label="Savings Name"
@@ -288,13 +293,6 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
                   <RetroButton label="Add Savings" size="sm" onPress={handleAddSavings} />
                 </View>
               </View>
-            ) : (
-              <RetroButton
-                label="Add New Savings"
-                variant="secondary"
-                onPress={() => setIsAdding(true)}
-                style={styles.addButton}
-              />
             )}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -319,6 +317,14 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addHeaderButton: {
+    padding: spacing.sm,
   },
   summary: {
     padding: spacing.lg,
@@ -402,8 +408,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.md,
-  },
-  addButton: {
-    marginTop: spacing.lg,
   },
 });
