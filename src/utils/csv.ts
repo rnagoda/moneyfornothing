@@ -38,7 +38,7 @@ export function generateCSV(data: AppData): string {
   lines.push('');
 
   // Income Section
-  lines.push('=== INCOME ===');
+  lines.push('--- INCOME ---');
   lines.push('Name,Default Amount,Current Amount,Paycheck Number');
   data.income.forEach(inc => {
     lines.push(
@@ -53,7 +53,7 @@ export function generateCSV(data: AppData): string {
   lines.push('');
 
   // Bills Section
-  lines.push('=== BILLS ===');
+  lines.push('--- BILLS ---');
   lines.push('Name,Amount,Paid');
   data.bills.forEach(bill => {
     lines.push(
@@ -67,7 +67,7 @@ export function generateCSV(data: AppData): string {
   lines.push('');
 
   // Savings Section
-  lines.push('=== SAVINGS ===');
+  lines.push('--- SAVINGS ---');
   lines.push('Name,Amount');
   data.savings.forEach(sav => {
     lines.push([sanitizeCSVValue(sav.name), sanitizeCSVValue(sav.amount)].join(','));
@@ -76,7 +76,7 @@ export function generateCSV(data: AppData): string {
 
   // Savings History Section
   if (data.appState.savingsHistory && data.appState.savingsHistory.length > 0) {
-    lines.push('=== SAVINGS HISTORY ===');
+    lines.push('--- SAVINGS HISTORY ---');
     lines.push('Month,Total');
     data.appState.savingsHistory.forEach(entry => {
       lines.push([sanitizeCSVValue(entry.month), sanitizeCSVValue(entry.total)].join(','));
@@ -90,7 +90,7 @@ export function generateCSV(data: AppData): string {
   const billsPaid = data.bills.filter(b => b.paid).reduce((sum, bill) => sum + bill.amount, 0);
   const savingsTotal = data.savings.reduce((sum, sav) => sum + sav.amount, 0);
 
-  lines.push('=== SUMMARY ===');
+  lines.push('--- SUMMARY ---');
   lines.push(`Total Income,${incomeTotal}`);
   lines.push(`Total Bills,${billsTotal}`);
   lines.push(`Bills Paid,${billsPaid}`);
@@ -176,23 +176,25 @@ export function parseCSV(csvContent: string): AppData | null {
       const lineLower = line.toLowerCase();
 
       // Check for section headers (case-insensitive, flexible matching)
-      if (lineLower.includes('income') && (line.includes('===') || lineLower.startsWith('income'))) {
+      // Support both === and --- delimiters
+      const isSectionHeader = line.includes('===') || line.includes('---');
+      if (lineLower.includes('income') && (isSectionHeader || lineLower.startsWith('income'))) {
         currentSection = 'income';
         headerSkipped = false;
         continue;
-      } else if (lineLower.includes('bills') && (line.includes('===') || lineLower.startsWith('bills'))) {
+      } else if (lineLower.includes('bills') && (isSectionHeader || lineLower.startsWith('bills'))) {
         currentSection = 'bills';
         headerSkipped = false;
         continue;
-      } else if (lineLower.includes('savings history') && line.includes('===')) {
+      } else if (lineLower.includes('savings history') && isSectionHeader) {
         currentSection = 'savingsHistory';
         headerSkipped = false;
         continue;
-      } else if (lineLower.includes('savings') && !lineLower.includes('history') && (line.includes('===') || lineLower.startsWith('savings'))) {
+      } else if (lineLower.includes('savings') && !lineLower.includes('history') && (isSectionHeader || lineLower.startsWith('savings'))) {
         currentSection = 'savings';
         headerSkipped = false;
         continue;
-      } else if (lineLower.includes('summary') && line.includes('===')) {
+      } else if (lineLower.includes('summary') && isSectionHeader) {
         currentSection = 'summary';
         headerSkipped = false;
         continue;
