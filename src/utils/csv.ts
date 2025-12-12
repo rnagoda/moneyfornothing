@@ -160,29 +160,32 @@ export function parseCSV(csvContent: string): AppData | null {
 
       const lineLower = line.toLowerCase();
 
-      // Check for section headers (case-insensitive, flexible matching)
-      // Support both === and --- delimiters
+      // Check for section headers (case-insensitive)
+      // Must contain === or --- delimiter to be a section header
+      // This prevents data lines like "Savings,1000,Yes" from triggering section switches
       const isSectionHeader = line.includes('===') || line.includes('---');
-      if (lineLower.includes('income') && (isSectionHeader || lineLower.startsWith('income'))) {
-        currentSection = 'income';
-        headerSkipped = false;
-        continue;
-      } else if (lineLower.includes('bills') && (isSectionHeader || lineLower.startsWith('bills'))) {
-        currentSection = 'bills';
-        headerSkipped = false;
-        continue;
-      } else if (lineLower.includes('savings history') && isSectionHeader) {
-        currentSection = 'savingsHistory';
-        headerSkipped = false;
-        continue;
-      } else if (lineLower.includes('savings') && !lineLower.includes('history') && (isSectionHeader || lineLower.startsWith('savings'))) {
-        currentSection = 'savings';
-        headerSkipped = false;
-        continue;
-      } else if (lineLower.includes('summary') && isSectionHeader) {
-        currentSection = 'summary';
-        headerSkipped = false;
-        continue;
+      if (isSectionHeader) {
+        if (lineLower.includes('savings history')) {
+          currentSection = 'savingsHistory';
+          headerSkipped = false;
+          continue;
+        } else if (lineLower.includes('income')) {
+          currentSection = 'income';
+          headerSkipped = false;
+          continue;
+        } else if (lineLower.includes('bills')) {
+          currentSection = 'bills';
+          headerSkipped = false;
+          continue;
+        } else if (lineLower.includes('savings')) {
+          currentSection = 'savings';
+          headerSkipped = false;
+          continue;
+        } else if (lineLower.includes('summary')) {
+          currentSection = 'summary';
+          headerSkipped = false;
+          continue;
+        }
       } else if (lineLower.includes('money for nothing') || lineLower.includes('export')) {
         continue;
       }
