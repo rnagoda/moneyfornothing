@@ -58,10 +58,15 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
     onComplete();
   };
 
+  const handleSkip = async () => {
+    // Skip setup - mark as completed without going through all steps
+    await handleComplete();
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 'welcome':
-        return <WelcomeStep onNext={goToNextStep} />;
+        return <WelcomeStep onNext={goToNextStep} onSkip={handleSkip} />;
       case 'income':
         return <IncomeStep onNext={goToNextStep} onBack={goToPreviousStep} />;
       case 'bills':
