@@ -38,26 +38,34 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
           style: 'destructive',
           onPress: async () => {
             try {
-              const data = await selectAndParseCSV();
-              if (!data) {
-                // User cancelled or parsing failed
+              const result = await selectAndParseCSV();
+
+              // User cancelled
+              if (result.cancelled) {
+                return;
+              }
+
+              // Parsing failed
+              if (!result.success || !result.data) {
+                Alert.alert('Import Failed', result.error || 'Could not import the CSV file.');
                 return;
               }
 
               // Save to storage
               const storage = await getStorage();
-              await storage.saveAllData(data);
+              await storage.saveAllData(result.data);
 
               // Update app state
-              dispatch({ type: 'IMPORT_DATA', payload: data });
+              dispatch({ type: 'IMPORT_DATA', payload: result.data });
 
               Alert.alert(
                 'Import Successful',
-                `Imported ${data.income.length} income sources, ${data.bills.length} bills, and ${data.savings.length} savings items.`
+                `Imported ${result.data.income.length} income sources, ${result.data.bills.length} bills, and ${result.data.savings.length} savings items.`
               );
             } catch (error) {
               console.error('Import error:', error);
-              Alert.alert('Import Failed', 'Could not import the CSV file. Make sure it is in the correct format.');
+              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+              Alert.alert('Import Failed', `Could not import the CSV file: ${errorMessage}`);
             }
           },
         },

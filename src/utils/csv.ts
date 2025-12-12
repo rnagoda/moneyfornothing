@@ -309,10 +309,20 @@ export function parseCSV(csvContent: string): AppData | null {
 }
 
 /**
- * Import CSV from file picker
- * Returns parsed AppData or null if cancelled/failed
+ * Result of CSV import attempt
  */
-export async function selectAndParseCSV(): Promise<AppData | null> {
+export interface ImportResult {
+  success: boolean;
+  data: AppData | null;
+  error?: string;
+  cancelled?: boolean;
+}
+
+/**
+ * Import CSV from file picker
+ * Returns result with parsed data or error information
+ */
+export async function selectAndParseCSV(): Promise<ImportResult> {
   if (Platform.OS === 'web') {
     // Web: Use file input
     return new Promise((resolve) => {
@@ -323,21 +333,25 @@ export async function selectAndParseCSV(): Promise<AppData | null> {
       input.onchange = async (event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) {
-          resolve(null);
+          resolve({ success: false, data: null, cancelled: true });
           return;
         }
 
         try {
           const content = await file.text();
           const data = parseCSV(content);
-          resolve(data);
+          if (data) {
+            resolve({ success: true, data });
+          } else {
+            resolve({ success: false, data: null, error: 'Could not parse CSV file. Make sure it was exported from this app.' });
+          }
         } catch (error) {
           console.error('File read error:', error);
-          resolve(null);
+          resolve({ success: false, data: null, error: 'Could not read file.' });
         }
       };
 
-      input.oncancel = () => resolve(null);
+      input.oncancel = () => resolve({ success: false, data: null, cancelled: true });
       input.click();
     });
   } else {
@@ -345,20 +359,38 @@ export async function selectAndParseCSV(): Promise<AppData | null> {
     try {
       const DocumentPicker = await import('expo-document-picker');
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['text/csv', 'text/comma-separated-values', 'application/csv'],
+        type: '*/*', // Accept all files, filter by extension in name
         copyToCacheDirectory: true,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) {
-        return null;
+        return { success: false, data: null, cancelled: true };
+      }
+
+      const asset = result.assets[0];
+
+      // Check file extension
+      if (!asset.name.toLowerCase().endsWith('.csv')) {
+        return { success: false, data: null, error: 'Please select a CSV file.' };
       }
 
       const LegacyFileSystem = await import('expo-file-system/legacy');
-      const content = await LegacyFileSystem.readAsStringAsync(result.assets[0].uri);
-      return parseCSV(content);
+      const content = await LegacyFileSystem.readAsStringAsync(asset.uri);
+
+      if (!content || content.trim().length === 0) {
+        return { success: false, data: null, error: 'File is empty.' };
+      }
+
+      const data = parseCSV(content);
+      if (data) {
+        return { success: true, data };
+      } else {
+        return { success: false, data: null, error: 'Could not parse CSV file. Make sure it was exported from this app.' };
+      }
     } catch (error) {
       console.error('Document picker error:', error);
-      return null;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, data: null, error: `Import failed: ${errorMessage}` };
     }
   }
 }
