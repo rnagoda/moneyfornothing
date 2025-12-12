@@ -14,9 +14,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer, modalStyles } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
 import { SparkLine } from '../layout';
 import { useSavings } from '../../hooks';
@@ -142,25 +141,25 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={webOuterContainer}>
-        <SafeAreaView style={[styles.container, webInnerContainer]}>
+        <SafeAreaView style={[modalStyles.container, webInnerContainer]}>
           <KeyboardAvoidingView
-            style={styles.keyboardView}
+            style={modalStyles.keyboardView}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-            <View style={styles.header}>
+            <View style={modalStyles.header}>
             <RetroText size="xl" bold>
               SAVINGS
             </RetroText>
-            <View style={styles.headerButtons}>
-              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+            <View style={modalStyles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={modalStyles.addHeaderButton}>
                 <RetroText>[ + ]</RetroText>
               </Pressable>
               <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
             </View>
           </View>
 
-          <View style={styles.summary}>
-            <View style={styles.summaryRow}>
+          <View style={modalStyles.summary}>
+            <View style={modalStyles.summaryRow}>
               <RetroText>Total Savings:</RetroText>
               <RetroText bold accent>
                 {formatCurrency(total)}
@@ -198,7 +197,7 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
             </View>
           )}
 
-          <ScrollView style={styles.content}>
+          <ScrollView style={modalStyles.content}>
             {savings.map(item => (
               <View key={item.id} style={styles.savingsItem}>
                 {/* Savings details */}
@@ -257,7 +256,7 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
                 {/* Delete button */}
                 <Pressable
                   onPress={() => handleDeleteSavings(item)}
-                  style={styles.deleteButton}
+                  style={modalStyles.deleteButton}
                   accessibilityLabel={`Delete ${item.name}`}
                 >
                   <RetroText warning size="sm">
@@ -268,14 +267,14 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
             ))}
 
             {savings.length === 0 && (
-              <RetroText muted center style={styles.emptyText}>
+              <RetroText muted center style={modalStyles.emptyText}>
                 No savings accounts yet
               </RetroText>
             )}
 
             {/* Add new savings form */}
             {isAdding && (
-              <View style={styles.addForm}>
+              <View style={modalStyles.addForm}>
                 <RetroInput
                   label="Savings Name"
                   value={newSavingsName}
@@ -290,7 +289,7 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
                   placeholder="0.00"
                   keyboardType="numeric"
                 />
-                <View style={styles.addFormButtons}>
+                <View style={modalStyles.addFormButtons}>
                   <RetroButton label="Cancel" variant="secondary" size="sm" onPress={() => setIsAdding(false)} />
                   <RetroButton label="Add Savings" size="sm" onPress={handleAddSavings} />
                 </View>
@@ -305,40 +304,6 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  addHeaderButton: {
-    padding: spacing.sm,
-  },
-  summary: {
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   historySection: {
     padding: spacing.lg,
     borderBottomWidth: 1,
@@ -352,10 +317,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.sm,
-  },
-  content: {
-    flex: 1,
-    padding: spacing.lg,
   },
   savingsItem: {
     flexDirection: 'row',
@@ -394,22 +355,5 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     padding: spacing.sm,
-  },
-  deleteButton: {
-    padding: spacing.sm,
-  },
-  emptyText: {
-    paddingVertical: spacing.xl,
-  },
-  addForm: {
-    marginTop: spacing.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  addFormButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
   },
 });

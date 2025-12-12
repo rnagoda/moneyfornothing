@@ -14,9 +14,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer, modalStyles } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
 import { useIncome } from '../../hooks';
 import { formatCurrency, parseCurrency } from '../../utils/formatters';
@@ -135,25 +134,25 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={webOuterContainer}>
-        <SafeAreaView style={[styles.container, webInnerContainer]}>
+        <SafeAreaView style={[modalStyles.container, webInnerContainer]}>
           <KeyboardAvoidingView
-            style={styles.keyboardView}
+            style={modalStyles.keyboardView}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-            <View style={styles.header}>
+            <View style={modalStyles.header}>
             <RetroText size="xl" bold>
               INCOME
             </RetroText>
-            <View style={styles.headerButtons}>
-              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+            <View style={modalStyles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={modalStyles.addHeaderButton}>
                 <RetroText>[ + ]</RetroText>
               </Pressable>
               <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
             </View>
           </View>
 
-          <View style={styles.summary}>
-            <View style={styles.summaryRow}>
+          <View style={modalStyles.summary}>
+            <View style={modalStyles.summaryRow}>
               <RetroText>Total Income:</RetroText>
               <RetroText bold accent>
                 {formatCurrency(total)}
@@ -161,9 +160,9 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
             </View>
           </View>
 
-          <ScrollView style={styles.content}>
+          <ScrollView style={modalStyles.content}>
             {/* Paychecks Section */}
-            <RetroText muted size="sm" style={styles.sectionHeader}>
+            <RetroText muted size="sm" style={modalStyles.sectionHeader}>
               PAYCHECKS
             </RetroText>
             {paychecks.map(item => (
@@ -243,7 +242,7 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
             ))}
 
             {/* Other Income Section */}
-            <RetroText muted size="sm" style={styles.sectionHeader}>
+            <RetroText muted size="sm" style={modalStyles.sectionHeader}>
               OTHER INCOME
             </RetroText>
             {otherIncome.length > 0 ? (
@@ -324,7 +323,7 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
                   {/* Delete button for other income */}
                   <Pressable
                     onPress={() => handleDeleteIncome(item)}
-                    style={styles.deleteButton}
+                    style={modalStyles.deleteButton}
                     accessibilityLabel={`Delete ${item.name}`}
                   >
                     <RetroText warning size="sm">
@@ -334,14 +333,14 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
                 </View>
               ))
             ) : (
-              <RetroText muted size="sm" style={styles.emptyText}>
+              <RetroText muted size="sm" style={modalStyles.emptyText}>
                 No additional income sources
               </RetroText>
             )}
 
             {/* Add new income form */}
             {isAdding && (
-              <View style={styles.addForm}>
+              <View style={modalStyles.addForm}>
                 <RetroInput
                   label="Income Name"
                   value={newIncomeName}
@@ -356,7 +355,7 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
                   placeholder="0.00"
                   keyboardType="numeric"
                 />
-                <View style={styles.addFormButtons}>
+                <View style={modalStyles.addFormButtons}>
                   <RetroButton
                     label="Cancel"
                     variant="secondary"
@@ -368,7 +367,7 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
               </View>
             )}
 
-            <View style={styles.actions}>
+            <View style={modalStyles.actions}>
               <RetroButton
                 label="Reset All to Defaults"
                 variant="secondary"
@@ -384,48 +383,6 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  addHeaderButton: {
-    padding: spacing.sm,
-  },
-  summary: {
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-    padding: spacing.lg,
-  },
-  sectionHeader: {
-    marginBottom: spacing.md,
-    marginTop: spacing.md,
-  },
   incomeItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -469,26 +426,5 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     padding: spacing.sm,
-  },
-  deleteButton: {
-    padding: spacing.sm,
-  },
-  emptyText: {
-    paddingVertical: spacing.md,
-  },
-  addForm: {
-    marginTop: spacing.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  addFormButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-  },
-  actions: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.xl,
   },
 });

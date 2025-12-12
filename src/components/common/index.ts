@@ -6,3 +6,4 @@ export { RetroText } from './RetroText';
 export { RetroButton } from './RetroButton';
 export { RetroInput } from './RetroInput';
 export { RetroCard } from './RetroCard';
+export { EditableField } from './EditableField';

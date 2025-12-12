@@ -12,3 +12,4 @@ export { spacing, borderRadius, borderWidth } from './spacing';
 export type { SpacingKey } from './spacing';
 
 export { WEB_MAX_WIDTH, webOuterContainer, webInnerContainer } from './web';
+export { modalStyles } from './modalStyles';

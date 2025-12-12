@@ -22,7 +22,6 @@ interface UseBillsReturn {
   updateBill: (id: string, updates: Partial<Pick<Bill, 'name' | 'amount'>>) => Promise<void>;
   togglePaid: (id: string) => Promise<void>;
   deleteBill: (id: string) => Promise<void>;
-  resetAllUnpaid: () => Promise<void>;
 }
 
 export function useBills(): UseBillsReturn {
@@ -85,15 +84,6 @@ export function useBills(): UseBillsReturn {
     [dispatch, state.bills]
   );
 
-  const resetAllUnpaid = useCallback(async () => {
-    dispatch({ type: 'RESET_ALL_BILLS_UNPAID' });
-
-    // Persist to storage
-    const updatedBills = state.bills.map(bill => ({ ...bill, paid: false }));
-    const storage = await getStorage();
-    await storage.saveBills(updatedBills);
-  }, [dispatch, state.bills]);
-
   return {
     bills: state.bills,
     totalDue: billsSummary.totalDue,
@@ -104,6 +94,5 @@ export function useBills(): UseBillsReturn {
     updateBill,
     togglePaid,
     deleteBill,
-    resetAllUnpaid,
   };
 }

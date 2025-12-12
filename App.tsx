@@ -5,7 +5,7 @@
 // Polyfill for crypto.getRandomValues() - MUST be first import
 import 'react-native-get-random-values';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Modal } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
