@@ -81,22 +81,7 @@ export function generateCSV(data: AppData): string {
     data.appState.savingsHistory.forEach(entry => {
       lines.push([sanitizeCSVValue(entry.month), sanitizeCSVValue(entry.total)].join(','));
     });
-    lines.push('');
   }
-
-  // Summary Section
-  const incomeTotal = data.income.reduce((sum, inc) => sum + inc.currentAmount, 0);
-  const billsTotal = data.bills.reduce((sum, bill) => sum + bill.amount, 0);
-  const billsPaid = data.bills.filter(b => b.paid).reduce((sum, bill) => sum + bill.amount, 0);
-  const savingsTotal = data.savings.reduce((sum, sav) => sum + sav.amount, 0);
-
-  lines.push('--- SUMMARY ---');
-  lines.push(`Total Income,${incomeTotal}`);
-  lines.push(`Total Bills,${billsTotal}`);
-  lines.push(`Bills Paid,${billsPaid}`);
-  lines.push(`Bills Remaining,${billsTotal - billsPaid}`);
-  lines.push(`Total Savings,${savingsTotal}`);
-  lines.push(`Tus Últimos Pesos,${incomeTotal - (billsTotal - billsPaid)}`);
 
   return lines.join('\n');
 }
