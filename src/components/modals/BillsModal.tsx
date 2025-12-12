@@ -120,7 +120,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
           </View>
 
           <View style={styles.summary}>
-            <ProgressBar progress={progress} width={25} />
+            <ProgressBar progress={progress} />
             <View style={styles.summaryRow}>
               <RetroText muted size="sm">
                 Total Due:

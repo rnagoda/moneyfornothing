@@ -81,7 +81,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
         <RetroText size="lg" bold center>
           SETUP WIZARD
         </RetroText>
-        <ProgressBar progress={progress} width={30} showPercentage={false} />
+        <ProgressBar progress={progress} showPercentage={false} />
         <RetroText size="sm" muted center>
           Step {stepIndex + 1} of {STEPS.length}
         </RetroText>
