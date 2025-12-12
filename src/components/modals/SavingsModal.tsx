@@ -18,7 +18,10 @@ import {
 } from 'react-native';
 import { colors, fonts, fontSizes, spacing } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
+import { SparkLine } from '../layout';
+import { SavingsHistoryModal } from './SavingsHistoryModal';
 import { useSavings } from '../../hooks';
+import { useAppContext } from '../../context/AppContext';
 import { formatCurrency, parseCurrency } from '../../utils/formatters';
 import type { Savings } from '../../types';
 
@@ -35,6 +38,7 @@ interface EditingState {
 
 export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   const { savings, total, addSavings, updateSavings, deleteSavings } = useSavings();
+  const { state } = useAppContext();
 
   const [editing, setEditing] = useState<EditingState>({
     id: null,
@@ -45,6 +49,12 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newSavingsName, setNewSavingsName] = useState('');
   const [newSavingsAmount, setNewSavingsAmount] = useState('');
+  const [historyModalVisible, setHistoryModalVisible] = useState(false);
+
+  // Get savings history for spark line
+  const history = state.appState.savingsHistory ?? [];
+  const historyData = history.map(entry => entry.total);
+  const hasHistory = historyData.length > 0;
 
   const startEditing = (item: Savings, field: 'name' | 'amount') => {
     const value = field === 'name' ? item.name : item.amount.toString();
@@ -125,6 +135,20 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
               </RetroText>
             </View>
           </View>
+
+          {/* Savings History Spark Line */}
+          {hasHistory && (
+            <View style={styles.historySection}>
+              <RetroText size="sm" muted style={styles.historyLabel}>
+                SAVINGS HISTORY
+              </RetroText>
+              <SparkLine
+                data={historyData}
+                mode="compact"
+                onPress={() => setHistoryModalVisible(true)}
+              />
+            </View>
+          )}
 
           <ScrollView style={styles.content}>
             {savings.map(item => (
@@ -234,6 +258,12 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Savings History Modal */}
+      <SavingsHistoryModal
+        visible={historyModalVisible}
+        onClose={() => setHistoryModalVisible(false)}
+      />
     </Modal>
   );
 }
@@ -264,6 +294,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  historySection: {
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  historyLabel: {
+    marginBottom: spacing.xs,
   },
   content: {
     flex: 1,
