@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
 import { AppProvider, useAppContext } from './src/context/AppContext';
 import { getStorage } from './src/storage';
-import { colors } from './src/theme';
+import { colors, webOuterContainer, webInnerContainer } from './src/theme';
 import { RetroText } from './src/components/common';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -115,15 +115,17 @@ export default function App() {
   // Show loading screen
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <StatusBar style="light" />
-        <RetroText size="xl" bold>
-          MONEY FOR NOTHING
-        </RetroText>
-        <ActivityIndicator size="large" color={colors.text} style={styles.spinner} />
-        <RetroText muted size="sm">
-          Loading...
-        </RetroText>
+      <View style={webOuterContainer}>
+        <View style={[styles.loadingContainer, webInnerContainer]}>
+            <StatusBar style="light" />
+            <RetroText size="xl" bold>
+              MONEY FOR NOTHING
+            </RetroText>
+            <ActivityIndicator size="large" color={colors.text} style={styles.spinner} />
+            <RetroText muted size="sm">
+              Loading...
+            </RetroText>
+        </View>
       </View>
     );
   }
@@ -131,23 +133,29 @@ export default function App() {
   // Show error screen
   if (error) {
     return (
-      <View style={styles.loadingContainer}>
-        <StatusBar style="light" />
-        <RetroText warning size="lg">
-          ERROR
-        </RetroText>
-        <RetroText muted style={styles.errorText}>
-          {error}
-        </RetroText>
+      <View style={webOuterContainer}>
+        <View style={[styles.loadingContainer, webInnerContainer]}>
+          <StatusBar style="light" />
+          <RetroText warning size="lg">
+            ERROR
+          </RetroText>
+          <RetroText muted style={styles.errorText}>
+            {error}
+          </RetroText>
+        </View>
       </View>
     );
   }
 
   return (
-    <AppProvider initialData={loadedData ?? undefined}>
-      <StatusBar style="light" />
-      <AppContent />
-    </AppProvider>
+    <View style={webOuterContainer}>
+      <View style={webInnerContainer}>
+        <AppProvider initialData={loadedData ?? undefined}>
+          <StatusBar style="light" />
+          <AppContent />
+        </AppProvider>
+      </View>
+    </View>
   );
 }
 

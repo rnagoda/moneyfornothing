@@ -16,7 +16,7 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
 import { RetroText, RetroButton, RetroInput, RetroCard } from '../common';
 import { ProgressBar } from '../layout';
 import { useBills } from '../../hooks';
@@ -54,7 +54,8 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
   const unpaidTotal = unpaidBills.reduce((sum, bill) => sum + bill.amount, 0);
 
   const startEditing = (item: Bill, field: 'name' | 'amount') => {
-    const value = field === 'name' ? item.name : item.amount.toString();
+    // For amounts, start with empty field for quicker entry
+    const value = field === 'name' ? item.name : '';
     setEditing({ id: item.id, field, value });
   };
 
@@ -122,9 +123,8 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
         <RetroText>{item.paid ? '[X]' : '[ ]'}</RetroText>
       </Pressable>
 
-      {/* Bill details */}
+      {/* Bill name and amount inline */}
       <View style={styles.billDetails}>
-        {/* Name */}
         {editing.id === item.id && editing.field === 'name' ? (
           <View style={styles.editRow}>
             <TextInput
@@ -142,14 +142,7 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
               </RetroText>
             </Pressable>
           </View>
-        ) : (
-          <Pressable onPress={() => startEditing(item, 'name')}>
-            <RetroText style={item.paid && styles.paidText}>{item.name}</RetroText>
-          </Pressable>
-        )}
-
-        {/* Amount */}
-        {editing.id === item.id && editing.field === 'amount' ? (
+        ) : editing.id === item.id && editing.field === 'amount' ? (
           <View style={styles.editRow}>
             <TextInput
               style={styles.editInputSmall}
@@ -167,11 +160,16 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
             </Pressable>
           </View>
         ) : (
-          <Pressable onPress={() => startEditing(item, 'amount')}>
-            <RetroText size="sm" muted style={item.paid && styles.paidText}>
-              {formatCurrency(item.amount)}
-            </RetroText>
-          </Pressable>
+          <View style={styles.billNameRow}>
+            <Pressable onPress={() => startEditing(item, 'name')} style={styles.namePress}>
+              <RetroText style={item.paid && styles.paidText}>{item.name}</RetroText>
+            </Pressable>
+            <Pressable onPress={() => startEditing(item, 'amount')}>
+              <RetroText size="sm" muted style={item.paid && styles.paidText}>
+                ({formatCurrency(item.amount)})
+              </RetroText>
+            </Pressable>
+          </View>
         )}
       </View>
 
@@ -190,11 +188,12 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
+      <View style={webOuterContainer}>
+        <SafeAreaView style={[styles.container, webInnerContainer]}>
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
           <View style={styles.header}>
             <RetroText size="xl" bold>
               BILLS
@@ -278,8 +277,9 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
               )}
             </RetroCard>
           </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 }
@@ -337,6 +337,14 @@ const styles = StyleSheet.create({
   },
   billDetails: {
     flex: 1,
+  },
+  billNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  namePress: {
+    flexShrink: 1,
   },
   paidText: {
     textDecorationLine: 'line-through',

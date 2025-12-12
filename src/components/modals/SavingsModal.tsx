@@ -16,7 +16,7 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { colors, fonts, fontSizes, spacing, webOuterContainer, webInnerContainer } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
 import { SparkLine } from '../layout';
 import { useSavings } from '../../hooks';
@@ -82,7 +82,8 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   }
 
   const startEditing = (item: Savings, field: 'name' | 'amount') => {
-    const value = field === 'name' ? item.name : item.amount.toString();
+    // For amounts, start with empty field for quicker entry
+    const value = field === 'name' ? item.name : '';
     setEditing({ id: item.id, field, value });
   };
 
@@ -140,12 +141,13 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.header}>
+      <View style={webOuterContainer}>
+        <SafeAreaView style={[styles.container, webInnerContainer]}>
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.header}>
             <RetroText size="xl" bold>
               SAVINGS
             </RetroText>
@@ -294,9 +296,10 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
                 </View>
               </View>
             )}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 }
