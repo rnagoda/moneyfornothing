@@ -18,9 +18,20 @@ import {
 } from 'react-native';
 import { colors, fonts, fontSizes, spacing } from '../../theme';
 import { RetroText, RetroButton, RetroInput } from '../common';
+import { SparkLine } from '../layout';
 import { useSavings } from '../../hooks';
+import { useAppContext } from '../../context/AppContext';
 import { formatCurrency, parseCurrency } from '../../utils/formatters';
 import type { Savings } from '../../types';
+
+/**
+ * Get month abbreviation from YYYY-MM format
+ */
+function getMonthAbbr(monthStr: string): string {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNum = parseInt(monthStr.split('-')[1], 10);
+  return months[monthNum - 1] || monthStr;
+}
 
 interface SavingsModalProps {
   visible: boolean;
@@ -35,6 +46,7 @@ interface EditingState {
 
 export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   const { savings, total, addSavings, updateSavings, deleteSavings } = useSavings();
+  const { state } = useAppContext();
 
   const [editing, setEditing] = useState<EditingState>({
     id: null,
@@ -45,6 +57,29 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newSavingsName, setNewSavingsName] = useState('');
   const [newSavingsAmount, setNewSavingsAmount] = useState('');
+
+  // Get savings history for spark line
+  const history = state.appState.savingsHistory ?? [];
+  const historyData = history.map(entry => entry.total);
+  const historyLabels = history.map(entry => getMonthAbbr(entry.month));
+  const hasHistory = historyData.length > 0;
+
+  // Calculate growth percentage and label
+  let growthPercent: number | null = null;
+  let growthLabel = '';
+  if (history.length >= 2) {
+    const oldest = history[0];
+    const newest = history[history.length - 1];
+    if (oldest.total > 0) {
+      growthPercent = Math.round(((newest.total - oldest.total) / oldest.total) * 100);
+    }
+    // Determine label based on whether we have 12 months
+    if (history.length >= 12) {
+      growthLabel = '12-month growth';
+    } else {
+      growthLabel = `Growth since ${getMonthAbbr(oldest.month)}`;
+    }
+  }
 
   const startEditing = (item: Savings, field: 'name' | 'amount') => {
     const value = field === 'name' ? item.name : item.amount.toString();
@@ -125,6 +160,36 @@ export function SavingsModal({ visible, onClose }: SavingsModalProps) {
               </RetroText>
             </View>
           </View>
+
+          {/* Savings History Spark Line */}
+          {hasHistory && (
+            <View style={styles.historySection}>
+              <RetroText size="sm" muted style={styles.historyLabel}>
+                SAVINGS HISTORY
+              </RetroText>
+              <SparkLine
+                data={historyData}
+                labels={historyLabels}
+                mode="full"
+                showLabels
+              />
+              {growthPercent !== null && (
+                <View style={styles.growthRow}>
+                  <RetroText size="sm" muted>
+                    {growthLabel}:
+                  </RetroText>
+                  <RetroText
+                    size="sm"
+                    bold
+                    accent={growthPercent >= 0}
+                    warning={growthPercent < 0}
+                  >
+                    {growthPercent >= 0 ? '+' : ''}{growthPercent}%
+                  </RetroText>
+                </View>
+              )}
+            </View>
+          )}
 
           <ScrollView style={styles.content}>
             {savings.map(item => (
@@ -264,6 +329,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  historySection: {
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  historyLabel: {
+    marginBottom: spacing.xs,
+  },
+  growthRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
   },
   content: {
     flex: 1,
