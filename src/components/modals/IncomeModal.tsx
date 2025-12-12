@@ -149,7 +149,12 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
             <RetroText size="xl" bold>
               INCOME
             </RetroText>
-            <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
+            <View style={styles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+                <RetroText>[ + ]</RetroText>
+              </Pressable>
+              <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
+            </View>
           </View>
 
           <View style={styles.summary}>
@@ -340,7 +345,7 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
             )}
 
             {/* Add new income form */}
-            {isAdding ? (
+            {isAdding && (
               <View style={styles.addForm}>
                 <RetroInput
                   label="Income Name"
@@ -366,13 +371,6 @@ export function IncomeModal({ visible, onClose }: IncomeModalProps) {
                   <RetroButton label="Add Income" size="sm" onPress={handleAddIncome} />
                 </View>
               </View>
-            ) : (
-              <RetroButton
-                label="Add Other Income"
-                variant="secondary"
-                onPress={() => setIsAdding(true)}
-                style={styles.addButton}
-              />
             )}
 
             <View style={styles.actions}>
@@ -405,6 +403,14 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addHeaderButton: {
+    padding: spacing.sm,
   },
   summary: {
     padding: spacing.lg,
@@ -484,9 +490,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.md,
-  },
-  addButton: {
-    marginTop: spacing.lg,
   },
   actions: {
     marginTop: spacing.xl,

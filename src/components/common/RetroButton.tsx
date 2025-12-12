@@ -87,7 +87,7 @@ function getVariantStyles(
   switch (variant) {
     case 'secondary':
       return {
-        button: { backgroundColor: 'transparent', borderColor: colors.border },
+        button: { backgroundColor: 'transparent', borderWidth: 0 },
         text: { color: colors.text },
       };
     case 'danger':

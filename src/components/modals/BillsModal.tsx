@@ -1,5 +1,5 @@
 /**
- * BillsModal - Manage bills with inline editing
+ * BillsModal - Manage bills with sections for progress, unpaid, and paid
  */
 
 import React, { useState } from 'react';
@@ -17,7 +17,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { colors, fonts, fontSizes, spacing } from '../../theme';
-import { RetroText, RetroButton, RetroInput } from '../common';
+import { RetroText, RetroButton, RetroInput, RetroCard } from '../common';
 import { ProgressBar } from '../layout';
 import { useBills } from '../../hooks';
 import { formatCurrency, parseCurrency } from '../../utils/formatters';
@@ -47,6 +47,11 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newBillName, setNewBillName] = useState('');
   const [newBillAmount, setNewBillAmount] = useState('');
+
+  // Separate bills into paid and unpaid
+  const unpaidBills = bills.filter(bill => !bill.paid);
+  const paidBills = bills.filter(bill => bill.paid);
+  const unpaidTotal = unpaidBills.reduce((sum, bill) => sum + bill.amount, 0);
 
   const startEditing = (item: Bill, field: 'name' | 'amount') => {
     const value = field === 'name' ? item.name : item.amount.toString();
@@ -105,6 +110,84 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
     ]);
   };
 
+  const renderBillItem = (item: Bill) => (
+    <View key={item.id} style={styles.billItem}>
+      {/* Paid checkbox */}
+      <Pressable
+        onPress={() => togglePaid(item.id)}
+        style={styles.checkbox}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: item.paid }}
+      >
+        <RetroText>{item.paid ? '[X]' : '[ ]'}</RetroText>
+      </Pressable>
+
+      {/* Bill details */}
+      <View style={styles.billDetails}>
+        {/* Name */}
+        {editing.id === item.id && editing.field === 'name' ? (
+          <View style={styles.editRow}>
+            <TextInput
+              style={styles.editInput}
+              value={editing.value}
+              onChangeText={value => setEditing(prev => ({ ...prev, value }))}
+              autoFocus
+              onBlur={saveEditing}
+              onSubmitEditing={saveEditing}
+              maxLength={32}
+            />
+            <Pressable onPress={cancelEditing} style={styles.cancelButton}>
+              <RetroText size="sm" muted>
+                [X]
+              </RetroText>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable onPress={() => startEditing(item, 'name')}>
+            <RetroText style={item.paid && styles.paidText}>{item.name}</RetroText>
+          </Pressable>
+        )}
+
+        {/* Amount */}
+        {editing.id === item.id && editing.field === 'amount' ? (
+          <View style={styles.editRow}>
+            <TextInput
+              style={styles.editInputSmall}
+              value={editing.value}
+              onChangeText={value => setEditing(prev => ({ ...prev, value }))}
+              autoFocus
+              onBlur={saveEditing}
+              onSubmitEditing={saveEditing}
+              keyboardType="numeric"
+            />
+            <Pressable onPress={cancelEditing} style={styles.cancelButton}>
+              <RetroText size="sm" muted>
+                [X]
+              </RetroText>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable onPress={() => startEditing(item, 'amount')}>
+            <RetroText size="sm" muted style={item.paid && styles.paidText}>
+              {formatCurrency(item.amount)}
+            </RetroText>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Delete button */}
+      <Pressable
+        onPress={() => handleDeleteBill(item)}
+        style={styles.deleteButton}
+        accessibilityLabel={`Delete ${item.name}`}
+      >
+        <RetroText warning size="sm">
+          DEL
+        </RetroText>
+      </Pressable>
+    </View>
+  );
+
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
@@ -116,142 +199,84 @@ export function BillsModal({ visible, onClose }: BillsModalProps) {
             <RetroText size="xl" bold>
               BILLS
             </RetroText>
-            <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
-          </View>
-
-          <View style={styles.summary}>
-            <ProgressBar progress={progress} />
-            <View style={styles.summaryRow}>
-              <RetroText muted size="sm">
-                Total Due:
-              </RetroText>
-              <RetroText size="sm">{formatCurrency(totalDue)}</RetroText>
-            </View>
-            <View style={styles.summaryRow}>
-              <RetroText muted size="sm">
-                Total Paid:
-              </RetroText>
-              <RetroText size="sm" accent>
-                {formatCurrency(totalPaid)}
-              </RetroText>
+            <View style={styles.headerButtons}>
+              <Pressable onPress={() => setIsAdding(true)} style={styles.addHeaderButton}>
+                <RetroText>[ + ]</RetroText>
+              </Pressable>
+              <RetroButton label="Close" variant="secondary" size="sm" onPress={onClose} />
             </View>
           </View>
 
           <ScrollView style={styles.content}>
-            {bills.map(item => (
-              <View key={item.id} style={styles.billItem}>
-                {/* Paid checkbox */}
-                <Pressable
-                  onPress={() => togglePaid(item.id)}
-                  style={styles.checkbox}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: item.paid }}
-                >
-                  <RetroText>{item.paid ? '[X]' : '[ ]'}</RetroText>
-                </Pressable>
-
-                {/* Bill details */}
-                <View style={styles.billDetails}>
-                  {/* Name */}
-                  {editing.id === item.id && editing.field === 'name' ? (
-                    <View style={styles.editRow}>
-                      <TextInput
-                        style={styles.editInput}
-                        value={editing.value}
-                        onChangeText={value => setEditing(prev => ({ ...prev, value }))}
-                        autoFocus
-                        onBlur={saveEditing}
-                        onSubmitEditing={saveEditing}
-                        maxLength={32}
-                      />
-                      <Pressable onPress={cancelEditing} style={styles.cancelButton}>
-                        <RetroText size="sm" muted>
-                          [X]
-                        </RetroText>
-                      </Pressable>
-                    </View>
-                  ) : (
-                    <Pressable onPress={() => startEditing(item, 'name')}>
-                      <RetroText style={item.paid && styles.paidText}>{item.name}</RetroText>
-                    </Pressable>
-                  )}
-
-                  {/* Amount */}
-                  {editing.id === item.id && editing.field === 'amount' ? (
-                    <View style={styles.editRow}>
-                      <TextInput
-                        style={styles.editInputSmall}
-                        value={editing.value}
-                        onChangeText={value => setEditing(prev => ({ ...prev, value }))}
-                        autoFocus
-                        onBlur={saveEditing}
-                        onSubmitEditing={saveEditing}
-                        keyboardType="numeric"
-                      />
-                      <Pressable onPress={cancelEditing} style={styles.cancelButton}>
-                        <RetroText size="sm" muted>
-                          [X]
-                        </RetroText>
-                      </Pressable>
-                    </View>
-                  ) : (
-                    <Pressable onPress={() => startEditing(item, 'amount')}>
-                      <RetroText size="sm" muted style={item.paid && styles.paidText}>
-                        {formatCurrency(item.amount)}
-                      </RetroText>
-                    </Pressable>
-                  )}
-                </View>
-
-                {/* Delete button */}
-                <Pressable
-                  onPress={() => handleDeleteBill(item)}
-                  style={styles.deleteButton}
-                  accessibilityLabel={`Delete ${item.name}`}
-                >
-                  <RetroText warning size="sm">
-                    DEL
-                  </RetroText>
-                </Pressable>
+            {/* Progress Card */}
+            <RetroCard title="Progress">
+              <ProgressBar progress={progress} />
+              <View style={styles.summaryRow}>
+                <RetroText muted size="sm">
+                  Total Due:
+                </RetroText>
+                <RetroText size="sm">{formatCurrency(totalDue)}</RetroText>
               </View>
-            ))}
+            </RetroCard>
 
-            {bills.length === 0 && (
-              <RetroText muted center style={styles.emptyText}>
-                No bills added yet
-              </RetroText>
-            )}
-
-            {/* Add new bill form */}
-            {isAdding ? (
-              <View style={styles.addForm}>
-                <RetroInput
-                  label="Bill Name"
-                  value={newBillName}
-                  onChangeText={setNewBillName}
-                  placeholder="e.g., Rent"
-                  maxLength={32}
-                />
-                <RetroInput
-                  label="Amount"
-                  value={newBillAmount}
-                  onChangeText={setNewBillAmount}
-                  placeholder="0.00"
-                  keyboardType="numeric"
-                />
-                <View style={styles.addFormButtons}>
-                  <RetroButton label="Cancel" variant="secondary" size="sm" onPress={() => setIsAdding(false)} />
-                  <RetroButton label="Add Bill" size="sm" onPress={handleAddBill} />
-                </View>
+            {/* Unpaid Bills Card */}
+            <RetroCard>
+              <View style={styles.cardTitleRow}>
+                <RetroText bold size="lg">Unpaid</RetroText>
+                <RetroText bold size="lg" warning>{formatCurrency(unpaidTotal)}</RetroText>
               </View>
-            ) : (
-              <RetroButton
-                label="Add New Bill"
-                variant="secondary"
-                onPress={() => setIsAdding(true)}
-                style={styles.addButton}
-              />
-            )}
+              {unpaidBills.length > 0 ? (
+                unpaidBills.map(renderBillItem)
+              ) : (
+                <RetroText muted size="sm" center>
+                  All bills paid!
+                </RetroText>
+              )}
+
+              {/* Add new bill form */}
+              {isAdding && (
+                <View style={styles.addForm}>
+                  <RetroInput
+                    label="Bill Name"
+                    value={newBillName}
+                    onChangeText={setNewBillName}
+                    placeholder="e.g., Rent"
+                    maxLength={32}
+                  />
+                  <RetroInput
+                    label="Amount"
+                    value={newBillAmount}
+                    onChangeText={setNewBillAmount}
+                    placeholder="0.00"
+                    keyboardType="numeric"
+                  />
+                  <View style={styles.addFormButtons}>
+                    <RetroButton
+                      label="Cancel"
+                      variant="secondary"
+                      size="sm"
+                      onPress={() => setIsAdding(false)}
+                    />
+                    <RetroButton label="Add Bill" size="sm" onPress={handleAddBill} />
+                  </View>
+                </View>
+              )}
+            </RetroCard>
+
+            {/* Paid Bills Card */}
+            <RetroCard>
+              <View style={styles.cardTitleRow}>
+                <RetroText bold size="lg">Paid</RetroText>
+                <RetroText bold size="lg" accent>{formatCurrency(totalPaid)}</RetroText>
+              </View>
+              {paidBills.length > 0 ? (
+                paidBills.map(renderBillItem)
+              ) : (
+                <RetroText muted size="sm" center>
+                  No bills paid yet
+                </RetroText>
+              )}
+            </RetroCard>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -276,19 +301,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  summary: {
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addHeaderButton: {
+    padding: spacing.sm,
+  },
+  content: {
+    flex: 1,
     padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.xs,
   },
-  content: {
-    flex: 1,
-    padding: spacing.lg,
+  cardTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   billItem: {
     flexDirection: 'row',
@@ -339,21 +373,15 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: spacing.sm,
   },
-  emptyText: {
-    paddingVertical: spacing.xl,
-  },
   addForm: {
     marginTop: spacing.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   addFormButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.md,
-  },
-  addButton: {
-    marginTop: spacing.lg,
   },
 });
