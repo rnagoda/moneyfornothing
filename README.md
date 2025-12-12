@@ -2,19 +2,6 @@
 
 A minimalist, retro-styled personal finance tracker for managing monthly income, bills, and savings. Built with React Native and Expo for Android and Web.
 
-```
-╔════════════════════════════════════════╗
-║                                        ║
-║   MONEY FOR NOTHING                    ║
-║   ══════════════════                   ║
-║                                        ║
-║   Tus Ultimos Pesos:     $1,234.56     ║
-║                                        ║
-║   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░  50%   ║
-║                                        ║
-╚════════════════════════════════════════╝
-```
-
 ## Features
 
 - **Income Tracking** - Track paychecks and additional income sources with default/current amounts
@@ -121,20 +108,29 @@ Access from Settings (gear icon):
 
 CSV format:
 ```csv
-[INCOME]
-name,currentAmount,defaultAmount
-Paycheck 1,2500,2500
-...
+Money For Nothing Export - December 2024
 
-[BILLS]
-name,amount,paid
-Rent,1200,false
-...
+--- INCOME ---
+Name,Default Amount,Current Amount,Paycheck Number
+Paycheck 1,2500,2500,1
+Paycheck 2,2500,2500,2
+Side Hustle,500,500,
 
-[SAVINGS]
-name,amount
+--- BILLS ---
+Name,Amount,Paid
+Rent,1200,No
+Electric,150,Yes
+
+--- SAVINGS ---
+Name,Amount
 Emergency Fund,5000
-...
+Vacation,1200
+
+--- SAVINGS HISTORY ---
+Month,Total
+2024-01,4500
+2024-02,4800
+2024-03,5200
 ```
 
 ## Development
