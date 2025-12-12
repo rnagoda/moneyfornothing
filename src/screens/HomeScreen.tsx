@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { colors, spacing } from '../theme';
 import { RetroText, RetroButton, RetroCard } from '../components/common';
-import { ProgressBar } from '../components/layout';
+import { ProgressBar, DescentGraph } from '../components/layout';
 import { useIncome, useBills, useSavings, useTusUltimosPesos, useMonthlyReset } from '../hooks';
 import { useAppContext } from '../context/AppContext';
 import { formatCurrency, formatMonth } from '../utils/formatters';
@@ -20,7 +20,7 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
   const { state } = useAppContext();
-  const { income, total: incomeTotal } = useIncome();
+  const { income, total: incomeTotal, defaultTotal: defaultIncomeTotal } = useIncome();
   const { bills, totalDue, totalPaid, progress } = useBills();
   const { savings, total: savingsTotal } = useSavings();
   const { amount: tusUltimosPesos, isNegative } = useTusUltimosPesos();
@@ -57,11 +57,20 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
       <ScrollView style={styles.content}>
         {/* Main Amount */}
         <RetroCard>
-          <View style={styles.heroAmount}>
-            <RetroText size="xxl" bold warning={isNegative} accent={!isNegative}>
-              {formatCurrency(tusUltimosPesos)}
-            </RetroText>
+          <View style={styles.heroContainer}>
+            <DescentGraph
+              totalIncome={defaultIncomeTotal}
+              currentRemaining={tusUltimosPesos}
+            />
+            <View style={styles.heroAmount}>
+              <RetroText size="hero" bold warning={isNegative} accent={!isNegative}>
+                {formatCurrency(tusUltimosPesos)}
+              </RetroText>
+            </View>
           </View>
+          <RetroText muted size="sm" style={styles.cashRemainingLabel}>
+            CASH REMAINING
+          </RetroText>
         </RetroCard>
 
         {/* Income Section */}
@@ -173,9 +182,19 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.lg,
   },
+  heroContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: 80,
+    justifyContent: 'center',
+  },
   heroAmount: {
     alignItems: 'center',
     paddingVertical: spacing.sm,
+  },
+  cashRemainingLabel: {
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   row: {
     flexDirection: 'row',

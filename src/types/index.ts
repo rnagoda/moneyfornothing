@@ -127,6 +127,7 @@ export interface BillsSummary {
 
 export interface IncomeSummary {
   total: number;
+  defaultTotal: number; // Sum of defaultAmount (used for descent graph)
 }
 
 export interface SavingsSummary {
