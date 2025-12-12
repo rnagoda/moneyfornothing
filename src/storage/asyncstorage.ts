@@ -3,7 +3,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AppData, Income, Bill, Savings, AppState } from '../types';
+import type { AppData, Income, Bill, Savings, AppState, SavingsHistoryEntry } from '../types';
 import type { StorageInterface } from './types';
 import { STORAGE_KEYS } from './types';
 
@@ -176,6 +176,29 @@ class AsyncStorageAdapter implements StorageInterface {
     } catch (error) {
       console.error('Failed to save app state to AsyncStorage:', error);
       throw new Error('Failed to save app state');
+    }
+  }
+
+  // ============================================
+  // Savings History Operations
+  // ============================================
+
+  async getSavingsHistory(): Promise<SavingsHistoryEntry[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.SAVINGS_HISTORY);
+      return json ? JSON.parse(json) : [];
+    } catch (error) {
+      console.error('Failed to get savings history from AsyncStorage:', error);
+      return [];
+    }
+  }
+
+  async saveSavingsHistory(history: SavingsHistoryEntry[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SAVINGS_HISTORY, JSON.stringify(history));
+    } catch (error) {
+      console.error('Failed to save savings history to AsyncStorage:', error);
+      throw new Error('Failed to save savings history');
     }
   }
 }

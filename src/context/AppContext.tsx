@@ -60,6 +60,7 @@ const createInitialState = (): AppData => ({
     lastSessionMonth: getCurrentMonth(),
     versionString: generateVersionString(),
     hasCompletedSetup: false,
+    savingsHistory: [],
   },
 });
 
@@ -196,17 +197,49 @@ function appReducer(state: AppData, action: AppAction): AppData {
         appState: { ...state.appState, versionString: action.payload },
       };
 
+    case 'ADD_SAVINGS_HISTORY_ENTRY':
+      // Keep last 12 months of history
+      const newHistory = [...(state.appState.savingsHistory ?? []), action.payload].slice(-12);
+      return {
+        ...state,
+        appState: { ...state.appState, savingsHistory: newHistory },
+      };
+
+    case 'SET_SAVINGS_HISTORY':
+      return {
+        ...state,
+        appState: { ...state.appState, savingsHistory: action.payload },
+      };
+
     // Bulk Actions
     case 'LOAD_ALL_DATA':
       return action.payload;
 
-    case 'PERFORM_MONTHLY_RESET':
+    case 'IMPORT_DATA':
+      // Replace all data with imported data
+      return action.payload;
+
+    case 'PERFORM_MONTHLY_RESET': {
+      // Capture savings snapshot before reset
+      const savingsTotal = state.savings.reduce((sum, sav) => sum + sav.amount, 0);
+      const historyEntry = {
+        month: state.appState.lastSessionMonth,
+        total: savingsTotal,
+      };
+      // Add to history (keep last 12 months)
+      const updatedHistory = [...(state.appState.savingsHistory ?? []), historyEntry].slice(-12);
+
       return {
         ...state,
         income: state.income.map(inc => ({ ...inc, currentAmount: inc.defaultAmount })),
         bills: state.bills.map(bill => ({ ...bill, paid: false })),
-        appState: { ...state.appState, lastSessionMonth: getCurrentMonth() },
+        appState: {
+          ...state.appState,
+          lastSessionMonth: getCurrentMonth(),
+          savingsHistory: updatedHistory,
+        },
       };
+    }
 
     default:
       return state;

@@ -29,6 +29,15 @@ export function useMonthlyReset(): UseMonthlyResetReturn {
   }, [checkNeedsMonthlyReset, state.appState.lastSessionMonth]);
 
   const performReset = useCallback(async () => {
+    // Capture savings snapshot before reset
+    const savingsTotal = state.savings.reduce((sum, sav) => sum + sav.amount, 0);
+    const historyEntry = {
+      month: state.appState.lastSessionMonth,
+      total: savingsTotal,
+    };
+    // Add to history (keep last 12 months)
+    const updatedHistory = [...(state.appState.savingsHistory ?? []), historyEntry].slice(-12);
+
     dispatch({ type: 'PERFORM_MONTHLY_RESET' });
 
     // Persist all changes to storage
@@ -48,15 +57,16 @@ export function useMonthlyReset(): UseMonthlyResetReturn {
     }));
     await storage.saveBills(updatedBills);
 
-    // Update app state
+    // Update app state with savings history
     const updatedAppState = {
       ...state.appState,
       lastSessionMonth: currentMonth,
+      savingsHistory: updatedHistory,
     };
     await storage.saveAppState(updatedAppState);
 
     setNeedsReset(false);
-  }, [dispatch, state.income, state.bills, state.appState, currentMonth]);
+  }, [dispatch, state.income, state.bills, state.savings, state.appState, currentMonth]);
 
   const checkAndReset = useCallback(async (): Promise<boolean> => {
     if (checkNeedsMonthlyReset()) {

@@ -27,10 +27,16 @@ export interface Savings {
   amount: number;
 }
 
+export interface SavingsHistoryEntry {
+  month: string; // Format: "YYYY-MM"
+  total: number;
+}
+
 export interface AppState {
   lastSessionMonth: string; // Format: "YYYY-MM"
   versionString: string;
   hasCompletedSetup: boolean;
+  savingsHistory: SavingsHistoryEntry[];
 }
 
 // ============================================
@@ -75,7 +81,9 @@ export type AppStateAction =
   | { type: 'SET_APP_STATE'; payload: AppState }
   | { type: 'UPDATE_LAST_SESSION_MONTH'; payload: string }
   | { type: 'SET_SETUP_COMPLETED'; payload: boolean }
-  | { type: 'SET_VERSION_STRING'; payload: string };
+  | { type: 'SET_VERSION_STRING'; payload: string }
+  | { type: 'ADD_SAVINGS_HISTORY_ENTRY'; payload: SavingsHistoryEntry }
+  | { type: 'SET_SAVINGS_HISTORY'; payload: SavingsHistoryEntry[] };
 
 export type AppAction =
   | IncomeAction
@@ -83,7 +91,8 @@ export type AppAction =
   | SavingsAction
   | AppStateAction
   | { type: 'LOAD_ALL_DATA'; payload: AppData }
-  | { type: 'PERFORM_MONTHLY_RESET' };
+  | { type: 'PERFORM_MONTHLY_RESET' }
+  | { type: 'IMPORT_DATA'; payload: AppData };
 
 // ============================================
 // Input Types (for forms/validation)

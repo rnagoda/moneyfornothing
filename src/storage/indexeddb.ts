@@ -3,11 +3,11 @@
  */
 
 import { openDB, type IDBPDatabase } from 'idb';
-import type { AppData, Income, Bill, Savings, AppState } from '../types';
+import type { AppData, Income, Bill, Savings, AppState, SavingsHistoryEntry } from '../types';
 import type { StorageInterface } from './types';
 
 const DB_NAME = 'MoneyForNothingDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // Store names
 const STORES = {
@@ -15,6 +15,7 @@ const STORES = {
   BILLS: 'bills',
   SAVINGS: 'savings',
   APP_STATE: 'appState',
+  SAVINGS_HISTORY: 'savingsHistory',
 } as const;
 
 interface MoneyForNothingDB {
@@ -33,6 +34,10 @@ interface MoneyForNothingDB {
   appState: {
     key: string;
     value: AppState;
+  };
+  savingsHistory: {
+    key: string;
+    value: SavingsHistoryEntry & { id: string };
   };
 }
 
@@ -58,6 +63,10 @@ class IndexedDBAdapter implements StorageInterface {
           }
           if (!db.objectStoreNames.contains(STORES.APP_STATE)) {
             db.createObjectStore(STORES.APP_STATE, { keyPath: 'id' });
+          }
+          // v2: Add savings history store
+          if (!db.objectStoreNames.contains(STORES.SAVINGS_HISTORY)) {
+            db.createObjectStore(STORES.SAVINGS_HISTORY, { keyPath: 'id' });
           }
         },
       });
@@ -103,6 +112,7 @@ class IndexedDBAdapter implements StorageInterface {
         lastSessionMonth: appState.lastSessionMonth,
         versionString: appState.versionString,
         hasCompletedSetup: appState.hasCompletedSetup,
+        savingsHistory: appState.savingsHistory ?? [],
       };
 
       return {
@@ -274,6 +284,7 @@ class IndexedDBAdapter implements StorageInterface {
         lastSessionMonth: record.lastSessionMonth,
         versionString: record.versionString,
         hasCompletedSetup: record.hasCompletedSetup,
+        savingsHistory: record.savingsHistory ?? [],
       };
     } catch (error) {
       console.error('Failed to get app state from IndexedDB:', error);
@@ -288,6 +299,43 @@ class IndexedDBAdapter implements StorageInterface {
     } catch (error) {
       console.error('Failed to save app state to IndexedDB:', error);
       throw new Error('Failed to save app state');
+    }
+  }
+
+  // ============================================
+  // Savings History Operations
+  // ============================================
+
+  async getSavingsHistory(): Promise<SavingsHistoryEntry[]> {
+    try {
+      const db = this.ensureDB();
+      const records = await db.getAll(STORES.SAVINGS_HISTORY);
+      // Remove the 'id' field we added for IndexedDB
+      return records.map(record => ({
+        month: record.month,
+        total: record.total,
+      }));
+    } catch (error) {
+      console.error('Failed to get savings history from IndexedDB:', error);
+      return [];
+    }
+  }
+
+  async saveSavingsHistory(history: SavingsHistoryEntry[]): Promise<void> {
+    try {
+      const db = this.ensureDB();
+      const tx = db.transaction(STORES.SAVINGS_HISTORY, 'readwrite');
+      const store = tx.objectStore(STORES.SAVINGS_HISTORY);
+
+      await store.clear();
+      // Use month as id for each entry
+      await Promise.all(
+        history.map(entry => store.add({ ...entry, id: entry.month }))
+      );
+      await tx.done;
+    } catch (error) {
+      console.error('Failed to save savings history to IndexedDB:', error);
+      throw new Error('Failed to save savings history');
     }
   }
 }
