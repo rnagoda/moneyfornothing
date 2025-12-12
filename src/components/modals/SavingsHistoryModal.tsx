@@ -2,7 +2,7 @@
  * SavingsHistoryModal - Full-screen savings history visualization
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Modal,
@@ -10,7 +10,6 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-  Pressable,
 } from 'react-native';
 import { colors, spacing } from '../../theme';
 import { RetroText, RetroButton } from '../common';
@@ -34,16 +33,12 @@ function getMonthAbbr(monthStr: string): string {
 
 export function SavingsHistoryModal({ visible, onClose }: SavingsHistoryModalProps) {
   const { state } = useAppContext();
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const history = state.appState.savingsHistory ?? [];
   const data = history.map(entry => entry.total);
   const labels = history.map(entry => getMonthAbbr(entry.month));
 
-  // Get selected entry details
-  const selectedEntry = selectedIndex !== null ? history[selectedIndex] : null;
   const latestEntry = history.length > 0 ? history[history.length - 1] : null;
-  const displayEntry = selectedEntry || latestEntry;
 
   // Calculate growth if we have at least 2 entries
   let growthPercent: number | null = null;
@@ -77,15 +72,15 @@ export function SavingsHistoryModal({ visible, onClose }: SavingsHistoryModalPro
             </View>
           ) : (
             <>
-              {/* Current/Selected Value Display */}
+              {/* Latest Value Display */}
               <View style={styles.valueDisplay}>
-                {displayEntry && (
+                {latestEntry && (
                   <>
                     <RetroText size="sm" muted>
-                      {selectedEntry ? getMonthAbbr(selectedEntry.month) : 'Latest'} Total
+                      Latest Total
                     </RetroText>
                     <RetroText size="xxl" bold accent>
-                      {formatCurrency(displayEntry.total)}
+                      {formatCurrency(latestEntry.total)}
                     </RetroText>
                   </>
                 )}
@@ -99,39 +94,6 @@ export function SavingsHistoryModal({ visible, onClose }: SavingsHistoryModalPro
                   mode="full"
                   showLabels
                 />
-              </View>
-
-              {/* Interactive month selector */}
-              <View style={styles.monthSelector}>
-                <RetroText size="sm" muted style={styles.selectorHint}>
-                  Tap a month to see details:
-                </RetroText>
-                <View style={styles.monthButtons}>
-                  {history.map((entry, index) => (
-                    <Pressable
-                      key={entry.month}
-                      style={[
-                        styles.monthButton,
-                        selectedIndex === index && styles.monthButtonSelected,
-                      ]}
-                      onPress={() => setSelectedIndex(selectedIndex === index ? null : index)}
-                    >
-                      <RetroText
-                        size="xs"
-                        style={selectedIndex === index ? styles.monthTextSelected : undefined}
-                      >
-                        {getMonthAbbr(entry.month)}
-                      </RetroText>
-                      <RetroText
-                        size="xs"
-                        muted={selectedIndex !== index}
-                        accent={selectedIndex === index}
-                      >
-                        {formatCurrency(entry.total)}
-                      </RetroText>
-                    </Pressable>
-                  ))}
-                </View>
               </View>
 
               {/* Growth indicator */}
@@ -193,31 +155,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: colors.border,
-  },
-  monthSelector: {
-    paddingVertical: spacing.lg,
-  },
-  selectorHint: {
-    marginBottom: spacing.md,
-  },
-  monthButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  monthButton: {
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    minWidth: 70,
-  },
-  monthButtonSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.buttonBackground,
-  },
-  monthTextSelected: {
-    color: colors.accent,
   },
   growthSection: {
     flexDirection: 'row',

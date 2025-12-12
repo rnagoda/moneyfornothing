@@ -57,7 +57,7 @@ export function SparkLine({
 
   const isCompact = mode === 'compact';
   const fontSize = isCompact ? fontSizes.xl : fontSizes.xxl;
-  const letterSpacing = isCompact ? 2 : 8;
+  const letterSpacing = isCompact ? 6 : 8; // Wider spacing for better readability
 
   const content = (
     <View style={[styles.container, style]}>
