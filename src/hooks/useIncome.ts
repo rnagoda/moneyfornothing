@@ -13,6 +13,7 @@ interface UseIncomeReturn {
   // Data
   income: Income[];
   total: number;
+  defaultTotal: number;
 
   // Actions
   addIncome: (name: string, defaultAmount: number) => Promise<void>;
@@ -110,6 +111,7 @@ export function useIncome(): UseIncomeReturn {
   return {
     income: state.income,
     total: incomeSummary.total,
+    defaultTotal: incomeSummary.defaultTotal,
     addIncome,
     updateCurrentAmount,
     updateDefaultAmount,

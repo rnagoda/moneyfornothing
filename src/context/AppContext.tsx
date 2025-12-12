@@ -280,6 +280,7 @@ export function AppProvider({ children, initialData }: AppProviderProps) {
   // Computed: Income Summary
   const incomeSummary: IncomeSummary = {
     total: state.income.reduce((sum, inc) => sum + inc.currentAmount, 0),
+    defaultTotal: state.income.reduce((sum, inc) => sum + inc.defaultAmount, 0),
   };
 
   // Computed: Bills Summary

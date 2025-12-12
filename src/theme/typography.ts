@@ -29,6 +29,7 @@ export const fontSizes = {
   lg: 16,
   xl: 18,
   xxl: 24,
+  hero: 32,
   header: 20,
 } as const;
 
