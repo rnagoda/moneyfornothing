@@ -7,7 +7,8 @@ import { View, StyleSheet, SafeAreaView, Alert, Platform, StatusBar } from 'reac
 import { colors, spacing } from '../theme';
 import { RetroText, RetroButton, RetroCard } from '../components/common';
 import { useAppContext } from '../context/AppContext';
-import { exportToCSV } from '../utils/csv';
+import { exportToCSV, selectAndParseCSV } from '../utils/csv';
+import { getStorage } from '../storage';
 
 interface SettingsScreenProps {
   onClose: () => void;
@@ -15,7 +16,7 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProps) {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
 
   const handleExportCSV = async () => {
     try {
@@ -24,6 +25,52 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
       console.error('Export error:', error);
       Alert.alert('Export Failed', 'Could not export your data.');
     }
+  };
+
+  const handleImportCSV = async () => {
+    Alert.alert(
+      'Import Data',
+      'This will replace ALL your current data with the imported data. This cannot be undone. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await selectAndParseCSV();
+
+              // User cancelled
+              if (result.cancelled) {
+                return;
+              }
+
+              // Parsing failed
+              if (!result.success || !result.data) {
+                Alert.alert('Import Failed', result.error || 'Could not import the CSV file.');
+                return;
+              }
+
+              // Save to storage
+              const storage = await getStorage();
+              await storage.saveAllData(result.data);
+
+              // Update app state
+              dispatch({ type: 'IMPORT_DATA', payload: result.data });
+
+              Alert.alert(
+                'Import Successful',
+                `Imported ${result.data.income.length} income sources, ${result.data.bills.length} bills, and ${result.data.savings.length} savings items.`
+              );
+            } catch (error) {
+              console.error('Import error:', error);
+              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+              Alert.alert('Import Failed', `Could not import the CSV file: ${errorMessage}`);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleRunSetupWizard = () => {
@@ -57,6 +104,16 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
           />
           <RetroText muted size="sm" style={styles.helpText}>
             Download all your data as a spreadsheet
+          </RetroText>
+          <RetroButton
+            label="Import from CSV"
+            variant="secondary"
+            onPress={handleImportCSV}
+            fullWidth
+            style={styles.importButton}
+          />
+          <RetroText muted size="sm" style={styles.helpText}>
+            Load data from a previously exported file
           </RetroText>
         </RetroCard>
 
@@ -130,6 +187,10 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   button: {
+    marginBottom: spacing.sm,
+  },
+  importButton: {
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
   },
   helpText: {

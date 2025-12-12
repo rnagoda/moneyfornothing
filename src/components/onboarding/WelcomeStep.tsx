@@ -9,9 +9,10 @@ import { RetroText, RetroButton } from '../common';
 
 interface WelcomeStepProps {
   onNext: () => void;
+  onSkip?: () => void;
 }
 
-export function WelcomeStep({ onNext }: WelcomeStepProps) {
+export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -43,6 +44,16 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
 
       <View style={styles.actions}>
         <RetroButton label="Get Started" onPress={onNext} size="lg" fullWidth />
+        {onSkip && (
+          <RetroButton
+            label="Skip Setup"
+            variant="secondary"
+            onPress={onSkip}
+            size="sm"
+            fullWidth
+            style={styles.skipButton}
+          />
+        )}
       </View>
     </View>
   );
@@ -74,5 +85,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     paddingTop: spacing.lg,
+  },
+  skipButton: {
+    marginTop: spacing.md,
   },
 });
