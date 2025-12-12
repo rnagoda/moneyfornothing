@@ -10,6 +10,9 @@ import { RetroText } from '../common/RetroText';
 // Unicode block characters for spark line (1/8 to 8/8 height)
 const BLOCK_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
+// All month abbreviations
+const ALL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 interface SparkLineProps {
   data: number[];
   labels?: string[];
@@ -56,13 +59,72 @@ export function SparkLine({
   const blocks = data.map(value => valueToBlock(value, min, max));
 
   const isCompact = mode === 'compact';
-  const fontSize = isCompact ? fontSizes.xl : fontSizes.xxl;
-  const letterSpacing = isCompact ? 14 : 10; // Wide spacing to fill screen width
+
+  // For full mode with labels, render as columns for proper alignment
+  if (!isCompact && showLabels && labels && labels.length > 0) {
+    // Find which months we have data for
+    const dataMonths = new Set(labels);
+
+    // Build display: show "..." for months before first data, then data months
+    const firstDataMonth = labels[0];
+    const firstMonthIndex = ALL_MONTHS.indexOf(firstDataMonth);
+    const hasLeadingGap = firstMonthIndex > 0;
+
+    const content = (
+      <View style={[styles.container, style]}>
+        {showCurrentValue && currentValue !== undefined && (
+          <RetroText size="lg" accent bold style={styles.currentValue}>
+            ${currentValue.toLocaleString()}
+          </RetroText>
+        )}
+
+        <View style={styles.columnsContainer}>
+          {/* Show "..." if there are months before our data */}
+          {hasLeadingGap && (
+            <View style={styles.column}>
+              <RetroText style={styles.barText} muted>
+                {' '}
+              </RetroText>
+              <RetroText size="xs" muted style={styles.columnLabel}>
+                ...
+              </RetroText>
+            </View>
+          )}
+
+          {/* Render each data point as a column */}
+          {blocks.map((block, index) => (
+            <View key={index} style={styles.column}>
+              <RetroText style={styles.barText} accent>
+                {block}
+              </RetroText>
+              <RetroText size="xs" muted style={styles.columnLabel}>
+                {labels[index]}
+              </RetroText>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+
+    if (onPress) {
+      return (
+        <Pressable onPress={onPress} style={styles.pressable}>
+          {content}
+        </Pressable>
+      );
+    }
+
+    return content;
+  }
+
+  // Compact mode: render as a single line of characters
+  const fontSize = fontSizes.xl;
+  const letterSpacing = 14; // Wide spacing to fill screen width
 
   const content = (
     <View style={[styles.container, style]}>
       {showCurrentValue && currentValue !== undefined && (
-        <RetroText size={isCompact ? 'sm' : 'lg'} accent bold style={styles.currentValue}>
+        <RetroText size="sm" accent bold style={styles.currentValue}>
           ${currentValue.toLocaleString()}
         </RetroText>
       )}
@@ -78,24 +140,6 @@ export function SparkLine({
           {blocks.join('')}
         </RetroText>
       </View>
-
-      {showLabels && labels && labels.length > 0 && (
-        <View style={styles.labelsContainer}>
-          {labels.map((label, index) => (
-            <RetroText
-              key={index}
-              size="xs"
-              muted
-              style={[
-                styles.label,
-                { width: fontSize + letterSpacing },
-              ]}
-            >
-              {label}
-            </RetroText>
-          ))}
-        </View>
-      )}
 
       {isCompact && onPress && (
         <RetroText size="xs" muted style={styles.hint}>
@@ -133,13 +177,21 @@ const styles = StyleSheet.create({
     color: colors.accent,
     lineHeight: undefined, // Let the blocks determine height
   },
-  labelsContainer: {
+  columnsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.xs,
+    alignItems: 'flex-end',
   },
-  label: {
-    textAlign: 'center',
+  column: {
+    alignItems: 'center',
+    marginHorizontal: spacing.xs,
+  },
+  barText: {
+    fontSize: fontSizes.xxl,
+    color: colors.accent,
+  },
+  columnLabel: {
+    marginTop: 2,
   },
   currentValue: {
     marginBottom: spacing.sm,
