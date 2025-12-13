@@ -142,7 +142,7 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
         {/* Version */}
         <View style={styles.versionContainer}>
           <RetroText muted size="xs">
-            {state.appState.versionString}
+            {state.appState.versionString}   -   engineered by nagodasoft
           </RetroText>
         </View>
       </ScrollView>
