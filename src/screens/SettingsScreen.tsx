@@ -191,7 +191,7 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
             <RetroText muted size="sm">
               Version:
             </RetroText>
-            <RetroText size="sm">{state.appState.versionString}</RetroText>
+            <RetroText size="sm">{state.appState.versionString}   -   engineered by nagodasoft</RetroText>
           </View>
           <View style={styles.aboutRow}>
             <RetroText muted size="sm">
@@ -199,9 +199,6 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
             </RetroText>
             <RetroText size="sm">{Platform.OS}</RetroText>
           </View>
-          <RetroText muted size="xs" style={styles.copyright}>
-            A simple finance tracker
-          </RetroText>
         </RetroCard>
 
         {/* Web Security Warning */}
@@ -255,10 +252,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
-  },
-  copyright: {
-    marginTop: spacing.md,
-    textAlign: 'center',
   },
   warningText: {
     marginTop: spacing.sm,
