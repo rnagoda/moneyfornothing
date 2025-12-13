@@ -191,7 +191,7 @@ export function SettingsScreen({ onClose, onRunSetupWizard }: SettingsScreenProp
             <RetroText muted size="sm">
               Version:
             </RetroText>
-            <RetroText size="sm">{state.appState.versionString}   -   engineered by nagodasoft</RetroText>
+            <RetroText size="sm">{state.appState.versionString}</RetroText>
           </View>
           <View style={styles.aboutRow}>
             <RetroText muted size="sm">
